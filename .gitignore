@@ -163,3 +163,4 @@ cython_debug/
 
 speech_segments/
 gpt_speech/
+scribe.db
