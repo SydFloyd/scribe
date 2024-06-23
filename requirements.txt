@@ -1,0 +1,15 @@
+colorama
+wave
+webrtcvad
+transformers
+accelerate
+pandas
+numpy==1.26.4
+pygame
+pyaudio
+openai
+librosa
+torch 
+torchvision 
+torchaudio 
+--index-url https://download.pytorch.org/whl/cu121
