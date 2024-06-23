@@ -162,5 +162,5 @@ cython_debug/
 #.idea/
 
 speech_segments/
-gpt_speech/
+gpt_speech/*
 scribe.db
