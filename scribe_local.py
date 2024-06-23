@@ -19,15 +19,15 @@ init() # init colorama
 
 transcriber = TranscriptionModel()
 
-if not os.path.exists("./gpt_speach"):
-    os.mkdir("./gpt_speach")
+if not os.path.exists("./gpt_speech"):
+    os.mkdir("./gpt_speech")
 
 def gpt_speak():
     while True:
-        if len(gpt_speach_file_heap) > 0:
+        if len(gpt_speech_file_heap) > 0:
             sleep(0.25)
-            curr = gpt_speach_file_heap.pop(0)
-            play_sound(f"./gpt_speach/{curr}")
+            curr = gpt_speech_file_heap.pop(0)
+            play_sound(f"./gpt_speech/{curr}")
         sleep(0.02)
 
 def gpt_voice():
@@ -35,8 +35,8 @@ def gpt_voice():
     while True:
         if len(gpt_voice_heap) > 0:
             curr = gpt_voice_heap.pop(0)
-            speak(curr, f"gpt_speach/speach_{output_index}")
-            gpt_speach_file_heap.append(f"speach_{output_index}.mp3")
+            speak(curr, f"gpt_speech/speech_{output_index}")
+            gpt_speech_file_heap.append(f"speech_{output_index}.mp3")
             output_index += 1
         sleep(0.02)
 
@@ -325,7 +325,7 @@ if __name__ == '__main__':
 
         m = GPT(system_message=system_message, save_messages=True)
 
-        gpt_speach_file_heap = []
+        gpt_speech_file_heap = []
         gpt_voice_heap = []
         transcript_heap = []
         rec_heap = []
