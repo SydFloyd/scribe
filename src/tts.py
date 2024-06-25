@@ -27,4 +27,4 @@ def speak(text, filename, voice='onyx'):
 
   return 0
 
-speak("The quick brown fox jumps over the lazy dog.", 'quick_brown')
+# speak("The quick brown fox jumps over the lazy dog.", 'quick_brown')
