@@ -235,6 +235,10 @@ class handy_GPT:
 if __name__ == '__main__':
     m = GPT()
     print(m.prompt("What is the derivatieve of ln(x)?"))
+    m = GPT(save_messages=True)
+    while True:
+        print(m.prompt(input(">>")))
+
     # m = stream_GPT(save_messages=True)
 
     # m.prompt("Outlines the steps for finding the derivative of e^(2x+4)?")
