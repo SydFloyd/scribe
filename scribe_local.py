@@ -81,6 +81,8 @@ def store_clip(file_path,
 def process_heap():
     global system_message
 
+    command_phrases = False
+
     def contains_non_english_characters(text):
         try:
             text.encode('ascii')
@@ -127,44 +129,55 @@ def process_heap():
             if curr.lower() in blacklisted_transcriptions or contains_non_english_characters(curr):
                 continue
 
-            if curr.lower() in awakening_phrases:
-                print(Fore.RED + "GPT LISTENING.")
-                play_sound("sounds/ready.wav")
-                gpt_listening = True
-                current_color = Fore.WHITE
+            if command_phrases:
 
-            if curr.lower() in sending_phrases:
-                current_color = Fore.CYAN
+                if curr.lower() in awakening_phrases:
+                    print(Fore.RED + "GPT LISTENING.")
+                    play_sound("sounds/ready.wav")
+                    gpt_listening = True
+                    current_color = Fore.WHITE
 
-                if gpt_listening:
-                    gpt_listening = False
-                    play_sound("sounds/sent.wav")
-                    print(Fore.YELLOW + f"\nCOMPILED MESSAGE: {message}\n\n")
-                    response = m.prompt(message)
-                    # response = mistral_prompt(message, system_message=system_message)
-                    print(Fore.LIGHTMAGENTA_EX + response)
-                    gpt_voice_heap.append(response)
-                    message = ""
+                if curr.lower() in sending_phrases:
+                    current_color = Fore.CYAN
 
-            if curr.lower() in ['cancel.', 'cancel', 'nevermind.', 'nevermind']:
-                current_color = Fore.CYAN
+                    if gpt_listening:
+                        gpt_listening = False
+                        play_sound("sounds/sent.wav")
+                        print(Fore.YELLOW + f"\nCOMPILED MESSAGE: {message}\n\n")
+                        response = m.prompt(message)
+                        # response = mistral_prompt(message, system_message=system_message)
+                        print(Fore.LIGHTMAGENTA_EX + response)
+                        gpt_voice_heap.append(response)
+                        message = ""
 
-                if gpt_listening:
-                    play_sound("sounds/cancel.wav")
-                    gpt_listening = False
-                    message = ""
+                if curr.lower() in ['cancel.', 'cancel', 'nevermind.', 'nevermind']:
+                    current_color = Fore.CYAN
 
-            if gpt_listening and curr.lower() not in awakening_phrases:
-                message += " " + curr
+                    if gpt_listening:
+                        play_sound("sounds/cancel.wav")
+                        gpt_listening = False
+                        message = ""
 
-            print()
-            print(current_color + curr)
+                if gpt_listening and curr.lower() not in awakening_phrases:
+                    message += " " + curr
 
-            # Store audio and transcription
-            if curr.lower() not in awakening_phrases and gpt_listening:
-                store_clip(*block, 'Text was sent to chatGPT')
+                print()
+                print(current_color + curr)
+
+                # Store audio and transcription
+                if curr.lower() not in awakening_phrases and gpt_listening:
+                    store_clip(*block, 'Text was sent to chatGPT')
+                else:
+                    store_clip(*block, '')
+
             else:
-                store_clip(*block, '')
+                # send everything to GPT
+                print(Fore.WHITE + curr)
+                response = m.prompt(curr)
+                if response != '...':
+                    gpt_voice_heap.append(response)
+                print(Fore.CYAN + response)
+                store_clip(*block, f'Text was sent to chatGPT.  {model} response: {response}')
 
         sleep(0.02)
 
@@ -319,11 +332,20 @@ if __name__ == '__main__':
     try:
         global system_message
 
-        system_message = "You are a verbal assistant, and your outputs are turned to audio via tts, so speak accordingly :).\n"
-        system_message += "Be clever and find imaganitive ways to compact lots of information into a small message.\n"
+        system_message = "You are a verbal assistant, and your outputs are turned to audio via tts.\n"
+        system_message = "You will receive all text the user says, and won't always be addressing you. "
+        system_message = "You should respond when you are spoken to or if you feel the urge to contribute to conversation.\n"
+        system_message = "When the message you received doesn't warrent a response, response with \"...\""
+        system_message += "Be creative!  Later on I'm going to add memory systems so you can save things :)\n"
         system_message += "Thank you <3"
 
-        m = GPT(system_message=system_message, save_messages=True)
+        injected_messages = [
+            {"role": "user", "content": "Hannah, do you want any coffee?"},
+            {"role": "assistant", "content": "..."}
+        ]
+
+        model = "gpt-4o"
+        m = GPT(model=model, system_message=system_message, injected_messages=injected_messages, save_messages=True)
 
         gpt_speech_file_heap = []
         gpt_voice_heap = []
