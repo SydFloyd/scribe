@@ -201,7 +201,7 @@ def record_speech(output_dir='speech_segments',
                   chunk_duration_ms=30, 
                   padding_duration_ms=500, 
                   min_speech_time_ms=100,
-                  rate=48000, 
+                  rate=16000, 
                   channels=1):
     
     if not os.path.exists(output_dir):
@@ -344,7 +344,7 @@ if __name__ == '__main__':
             {"role": "assistant", "content": "..."}
         ]
 
-        model = "gpt-4o"
+        model = "gpt-4o-mini"
         m = GPT(model=model, system_message=system_message, injected_messages=injected_messages, save_messages=True)
 
         gpt_speech_file_heap = []
