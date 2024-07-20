@@ -9,11 +9,10 @@ from colorama import Fore, Back, Style, init
 import datetime
 import sqlite3
 
-# from scribe_loc_api_call import get_transcription
 from src.whisper import TranscriptionModel
 from src.gpt import handy_GPT, GPT
 from src.play_sound import play_sound
-from src.tts import speak
+from src.tts import tts
 
 init() # init colorama
 
@@ -22,12 +21,18 @@ transcriber = TranscriptionModel()
 if not os.path.exists("./gpt_speech"):
     os.mkdir("./gpt_speech")
 
+gpt_is_speaking = False
+gpt_voice_box = "fable"
+
 def gpt_speak():
+    global gpt_is_speaking
     while True:
         if len(gpt_speech_file_heap) > 0:
-            sleep(0.25)
             curr = gpt_speech_file_heap.pop(0)
+            gpt_is_speaking = True
             play_sound(f"./gpt_speech/{curr}")
+            sleep(0.05)
+            gpt_is_speaking = False
         sleep(0.02)
 
 def gpt_voice():
@@ -35,7 +40,7 @@ def gpt_voice():
     while True:
         if len(gpt_voice_heap) > 0:
             curr = gpt_voice_heap.pop(0)
-            speak(curr, f"gpt_speech/speech_{output_index}")
+            tts(curr, f"gpt_speech/speech_{output_index}", voice=gpt_voice_box)
             gpt_speech_file_heap.append(f"speech_{output_index}.mp3")
             output_index += 1
         sleep(0.02)
@@ -81,7 +86,7 @@ def store_clip(file_path,
 def process_heap():
     global system_message
 
-    command_phrases = False
+    command_phrases = False # toggles usage of command words for speaking to GPT
 
     def contains_non_english_characters(text):
         try:
@@ -101,7 +106,7 @@ def process_heap():
         "i'll see you guys in the next one.", "thank you so much for watching, until the next videos !!!",
         "subs by www.zeoranger.co.uk",
         "thank you for watching. always be happy.",
-        'thank you.',
+        'thank you.', "Bye-bye.",
     ]
 
     awakening_phrases = ["hey computer", "hey computer.", 
@@ -173,13 +178,17 @@ def process_heap():
             else:
                 # send everything to GPT
                 print(Fore.WHITE + curr)
-                response = m.prompt(curr)
-                if response != '...':
-                    gpt_voice_heap.append(response)
-                print(Fore.CYAN + response)
-                store_clip(*block, f'Text was sent to chatGPT.  {model} response: {response}')
+                speech_turn = threading.Thread(target=speak_to_gpt, args=(curr, block,))
+                speech_turn.start()
 
         sleep(0.02)
+
+def speak_to_gpt(prompt, block):
+    response = m.prompt(prompt)
+    if response != '...':
+        gpt_voice_heap.append(response)
+    print(Fore.CYAN + response)
+    store_clip(*block, f'Text was sent to chatGPT.  {model} response: {response}')
 
 def transcribe_heap():
     while True:
@@ -203,6 +212,7 @@ def record_speech(output_dir='speech_segments',
                   min_speech_time_ms=100,
                   rate=16000, 
                   channels=1):
+    global gpt_is_speaking
     
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -255,7 +265,7 @@ def record_speech(output_dir='speech_segments',
 
         active = vad.is_speech(chunk_data, rate)
 
-        if not recording and active:
+        if not recording and active and not gpt_is_speaking:
             # print("Start recording")
             recording = True
             triggered = False
@@ -327,10 +337,10 @@ def record_speech(output_dir='speech_segments',
                 frames = []
                 sliding_window.clear()
 
-
 if __name__ == '__main__':
     try:
         global system_message
+        global use_tools
 
         system_message = "You are a verbal assistant, and your outputs are turned to audio via tts.\n"
         system_message = "You will receive all text the user says, and won't always be addressing you. "

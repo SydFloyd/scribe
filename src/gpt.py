@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 import json
-import os
+from pprint import pprint
 from random import randint
 try:
     from openai_init import *
@@ -142,26 +142,7 @@ class handy_GPT:
 
         self.message_history = []
 
-        self.tools = [
-            # {
-            #     "type": "function",
-            #     "function": {
-            #         "name": "get_current_weather",
-            #         "description": "Get the current weather in a given location",
-            #         "parameters": {
-            #             "type": "object",
-            #             "properties": {
-            #                 "location": {
-            #                     "type": "string",
-            #                     "description": "The city and state, e.g. San Francisco, CA",
-            #                 },
-            #                 "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
-            #             },
-            #             "required": ["location"],
-            #         },
-            #     },
-            # }
-            
+        self.tools = [            
             {
                 "type": "function",
                 "function": {
@@ -176,6 +157,27 @@ class handy_GPT:
     def add_tool(self, tool_json, tool_function):
         self.tools.append(tool_json)
         self.available_tools[tool_json['function']['name']] = tool_function
+
+    def print_example_tool(self):
+        example_tool = {
+            "type": "function",
+            "function": {
+                "name": "get_current_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA",
+                        },
+                        "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                    },
+                    "required": ["location"],
+                },
+            },
+        }
+        pprint(example_tool)
 
     def compile_messages(self):
         messages = []
