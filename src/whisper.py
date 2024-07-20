@@ -62,5 +62,5 @@ class TranscriptionModel:
 if __name__ == '__main__':
     # Example of using the class
     transcriber = TranscriptionModel()  # Change to False to use remote transcription
-    result = transcriber.transcribe("src/quick_brown.mp3")
+    result = transcriber.transcribe("speech_segments/20240720_145550.wav")
     print(result)
